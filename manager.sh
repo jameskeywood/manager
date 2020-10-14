@@ -1,9 +1,10 @@
 #!/bin/bash
 
 # Visual setting manager
-# James Keywood - 13/Oct/2020
+# James Keywood - 14/Oct/2020
 
-function menu {
+# an infinite loop to ensure that the program continues after menus close
+while true; do
 
 # opens a dialog menu to take a user choice
 choice=$(dialog	--clear \
@@ -25,6 +26,8 @@ case "$choice" in
 						--menu "Select" 0 0 0 \
 							"${index[@]}" \
 						--output-fd 1)
+		# checks if the user cancelled
+		if [ "$preset" == "" ]; then continue; fi
 		items=($(cat config/presets/"$preset.txt")) # array for config file
 		xwallpaper --zoom "${items[0]}" # sets the wallpaper
 		;;
@@ -35,19 +38,25 @@ case "$choice" in
 		name=$(dialog	--clear \
 						--inputbox "Enter a name" 0 0 \
 						--output-fd 1)
+		# checks if the user cancelled
+		if [ "$name" == "" ]; then continue; fi
 		name=$(echo -e "$name" | tr -d '[:space:]') # removes whitespace
 		desc=$(dialog	--clear \
 						--inputbox "Enter a description" 0 0 \
 						--output-fd 1)
+		# checks if the user cancelled
+		if [ "$desc" == "" ]; then continue; fi
 		desc=$(echo -e "$desc" | tr -d '[:space:]') # removes whitespace
 		path=$(dialog	--clear \
 						--inputbox "Enter a wallpaper path" 0 0 \
 						--output-fd 1)
+		# checks if the user cancelled
+		if [ "$path" == "" ]; then continue; fi
 		path=$(echo -e "$path" | tr -d '[:space:]') # removes whitespace
-		echo -e "$name" >> config/index.txt
-		echo -e "$desc" >> config/index.txt
-		touch config/presets/"$name.txt"
-		echo -e "$path" >> config/presets/"$name.txt"
+		echo -e "$name" >> config/index.txt # writes name to index
+		echo -e "$desc" >> config/index.txt # writes description to index
+		touch config/presets/"$name.txt" # creates config file
+		echo -e "$path" >> config/presets/"$name.txt" # writes settings to file
 
 		;;
 
@@ -59,6 +68,8 @@ case "$choice" in
 							--menu "Remove" 0 0 0 \
 								"${index[@]}" \
 							--output-fd 1)
+			# checks if the user cancelled
+			if [ "$preset" == "" ]; then continue; fi
 			# remove preset and description from index file
 			sed -i "/$preset/,+1 d" config/index.txt
 			rm config/presets/"$preset.txt" # remove config file
@@ -72,17 +83,19 @@ case "$choice" in
 						--menu "View" 0 0 0 \
 							"${index[@]}" \
 						--output-fd 1)
+		# checks if the user cancelled
+		if [ "$preset" == "" ]; then continue; fi
 		# creates dialog textbox for the user to view the config file
 		dialog --textbox config/presets/"$preset.txt" 0 0
 		;;
 
+	# for any other output, cancel for example, the loop will break
 	*)
-		echo exit
+		break
 		;;
 esac
 
-}
+done
 
-menu
-
+# exits the program upon completion
 exit 0
